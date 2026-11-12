@@ -1,0 +1,10 @@
+{
+  "name": "Global Music Jam",
+  "description": "Professional collaborative music creation platform connecting musicians worldwide for asynchronous studio multitrack production and live real-time jams.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

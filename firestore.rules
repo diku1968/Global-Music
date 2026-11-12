@@ -1,0 +1,194 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User profile validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['userId', 'displayName', 'primaryInstrument'])
+        && data.userId == request.auth.uid
+        && data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 80
+        && data.primaryInstrument is string && data.primaryInstrument.size() > 0 && data.primaryInstrument.size() <= 60
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 1000))
+        && (!('country' in data) || (data.country is string && data.country.size() <= 100))
+        && (!('preferredLanguage' in data) || (data.preferredLanguage is string && data.preferredLanguage.size() <= 50))
+        && (!('experienceLevel' in data) || (data.experienceLevel is string && data.experienceLevel.size() <= 50))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 120))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && (!('isAvailableForCollab' in data) || data.isAvailableForCollab is bool)
+        && (!('instruments' in data) || (data.instruments is list && data.instruments.size() <= 30))
+        && (!('skills' in data) || (data.skills is list && data.skills.size() <= 30))
+        && (!('portfolioLinks' in data) || (data.portfolioLinks is list && data.portfolioLinks.size() <= 20));
+    }
+
+    // Users Collection: Musician Profiles
+    match /users/{userId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn()
+        && isValidId(userId)
+        && userId == request.auth.uid
+        && isValidUser(incoming());
+      allow update: if isSignedIn()
+        && isValidId(userId)
+        && userId == request.auth.uid
+        && isValidUser(incoming())
+        && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && userId == request.auth.uid;
+    }
+
+    // Follows Collection
+    function isValidFollow(data) {
+      return data.keys().hasAll(['followerId', 'targetUserId'])
+        && data.followerId == request.auth.uid
+        && data.targetUserId is string && data.targetUserId.size() <= 128;
+    }
+
+    match /follows/{followId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn()
+        && isValidId(followId)
+        && isValidFollow(incoming());
+      allow delete: if isSignedIn()
+        && existing().followerId == request.auth.uid;
+    }
+
+    // Projects Collection
+    function isValidProject(data) {
+      return data.keys().hasAll(['projectId', 'title', 'ownerId', 'bpm'])
+        && data.ownerId == request.auth.uid
+        && data.projectId is string && data.projectId.size() <= 128
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 120
+        && (data.bpm is int || data.bpm is float) && data.bpm >= 20 && data.bpm <= 300
+        && (!('description' in data) || (data.description is string && data.description.size() <= 2000))
+        && (!('genre' in data) || (data.genre is string && data.genre.size() <= 60))
+        && (!('musicKey' in data) || (data.musicKey is string && data.musicKey.size() <= 30))
+        && (!('timeSignature' in data) || (data.timeSignature is string && data.timeSignature.size() <= 20))
+        && (!('ownerName' in data) || (data.ownerName is string && data.ownerName.size() <= 80))
+        && (!('requiredInstruments' in data) || (data.requiredInstruments is list && data.requiredInstruments.size() <= 20))
+        && (!('isPublic' in data) || data.isPublic is bool)
+        && (!('status' in data) || (data.status is string && data.status.size() <= 30));
+    }
+
+    match /projects/{projectId} {
+      allow get: if isSignedIn() || resource.data.isPublic == true;
+      allow list: if isSignedIn() || resource.data.isPublic == true;
+      allow create: if isSignedIn()
+        && isValidId(projectId)
+        && isValidProject(incoming());
+      allow update: if isSignedIn()
+        && isValidId(projectId)
+        && existing().ownerId == request.auth.uid
+        && isValidProject(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().projectId == existing().projectId;
+      allow delete: if isSignedIn()
+        && existing().ownerId == request.auth.uid;
+
+      // Tracks Subcollection
+      match /tracks/{trackId} {
+        allow get: if isSignedIn() || get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true;
+        allow list: if isSignedIn() || get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true;
+        allow create: if isSignedIn()
+          && isValidId(projectId)
+          && isValidId(trackId)
+          && isValidTrack(incoming())
+          && exists(/databases/$(database)/documents/projects/$(projectId));
+        allow update: if isSignedIn()
+          && isValidId(projectId)
+          && isValidId(trackId)
+          && isValidTrack(incoming())
+          && (existing().musicianId == request.auth.uid || get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid)
+          && incoming().projectId == existing().projectId
+          && incoming().trackId == existing().trackId;
+        allow delete: if isSignedIn()
+          && isValidId(projectId)
+          && isValidId(trackId)
+          && (existing().musicianId == request.auth.uid || get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid);
+      }
+    }
+
+    function isValidTrack(data) {
+      return data.keys().hasAll(['trackId', 'projectId', 'name', 'instrument', 'musicianId'])
+        && data.musicianId == request.auth.uid
+        && data.trackId is string && data.trackId.size() <= 128
+        && data.projectId is string && data.projectId.size() <= 128
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.instrument is string && data.instrument.size() <= 60
+        && (!('musicianName' in data) || (data.musicianName is string && data.musicianName.size() <= 80))
+        && (!('duration' in data) || data.duration is int || data.duration is float)
+        && (!('startOffset' in data) || data.startOffset is int || data.startOffset is float)
+        && (!('volume' in data) || data.volume is int || data.volume is float)
+        && (!('pan' in data) || data.pan is int || data.pan is float)
+        && (!('isMuted' in data) || data.isMuted is bool)
+        && (!('isSolo' in data) || data.isSolo is bool);
+    }
+
+    // Invitations Collection
+    function isValidInvitation(data) {
+      return data.keys().hasAll(['invitationId', 'senderId', 'receiverId', 'status'])
+        && data.senderId == request.auth.uid
+        && data.receiverId is string && data.receiverId.size() <= 128
+        && data.status in ['pending', 'accepted', 'rejected']
+        && (!('message' in data) || (data.message is string && data.message.size() <= 500))
+        && (!('instrument' in data) || (data.instrument is string && data.instrument.size() <= 60));
+    }
+
+    match /invitations/{invitationId} {
+      allow get: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn()
+        && isValidId(invitationId)
+        && isValidInvitation(incoming());
+      allow update: if isSignedIn()
+        && isValidId(invitationId)
+        && (
+          (existing().receiverId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+          (existing().senderId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'message']))
+        );
+      allow delete: if isSignedIn() && (existing().senderId == request.auth.uid || existing().receiverId == request.auth.uid);
+    }
+
+    // Messages Collection
+    function isValidMessage(data) {
+      return data.keys().hasAll(['messageId', 'senderId', 'receiverId', 'text'])
+        && data.senderId == request.auth.uid
+        && data.receiverId is string && data.receiverId.size() <= 128
+        && data.text is string && data.text.size() > 0 && data.text.size() <= 2000;
+    }
+
+    match /messages/{messageId} {
+      allow get: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn()
+        && isValidId(messageId)
+        && isValidMessage(incoming());
+      allow update: if isSignedIn()
+        && isValidId(messageId)
+        && existing().receiverId == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && (existing().senderId == request.auth.uid || existing().receiverId == request.auth.uid);
+    }
+  }
+}

@@ -1,0 +1,372 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Musician profile including instruments, skills, country, and portfolio",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique Firebase Authentication UID of the musician"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Musician stage or display name",
+          "maxLength": 80
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 120
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar image URL or studio avatar identifier",
+          "maxLength": 500
+        },
+        "bio": {
+          "type": "string",
+          "description": "Artist biography and musical background",
+          "maxLength": 1000
+        },
+        "country": {
+          "type": "string",
+          "description": "Country or location of the musician",
+          "maxLength": 100
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "description": "Primary communication language",
+          "maxLength": 50
+        },
+        "primaryInstrument": {
+          "type": "string",
+          "description": "Primary instrument played",
+          "maxLength": 60
+        },
+        "instruments": {
+          "type": "array",
+          "description": "All musical instruments played"
+        },
+        "skills": {
+          "type": "array",
+          "description": "Musical skills, techniques, or roles"
+        },
+        "experienceLevel": {
+          "type": "string",
+          "description": "Experience level (Beginner, Intermediate, Advanced, Professional)",
+          "maxLength": 50
+        },
+        "portfolioLinks": {
+          "type": "array",
+          "description": "Links to music tracks, SoundCloud, YouTube, or portfolio sites"
+        },
+        "followersCount": {
+          "type": "number",
+          "description": "Total followers count"
+        },
+        "followingCount": {
+          "type": "number",
+          "description": "Total following count"
+        },
+        "isAvailableForCollab": {
+          "type": "boolean",
+          "description": "Whether the musician is currently accepting collaboration invites"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp or server timestamp when account was registered"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp or server timestamp when profile was last updated"
+        }
+      },
+      "required": ["userId", "displayName", "primaryInstrument"]
+    },
+    "Follow": {
+      "title": "Follow",
+      "description": "Musician follow relationship",
+      "type": "object",
+      "properties": {
+        "followerId": {
+          "type": "string",
+          "description": "UID of the user who followed"
+        },
+        "targetUserId": {
+          "type": "string",
+          "description": "UID of the musician being followed"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when follow occurred"
+        }
+      },
+      "required": ["followerId", "targetUserId"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "Collaborative music song project",
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "Unique project identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Song title",
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "description": "Project overview and song concept",
+          "maxLength": 2000
+        },
+        "genre": {
+          "type": "string",
+          "description": "Musical genre (Rock, Jazz, Funk, Hip Hop, Electronic, Ambient, etc.)",
+          "maxLength": 60
+        },
+        "bpm": {
+          "type": "number",
+          "description": "Beats per minute tempo"
+        },
+        "musicKey": {
+          "type": "string",
+          "description": "Musical key (e.g. C Major, A Minor)",
+          "maxLength": 30
+        },
+        "timeSignature": {
+          "type": "string",
+          "description": "Time signature (e.g. 4/4, 3/4, 6/8)",
+          "maxLength": 20
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of project creator"
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Display name of project creator",
+          "maxLength": 80
+        },
+        "requiredInstruments": {
+          "type": "array",
+          "description": "Instruments needed for this collaboration"
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether the project is visible on public discover"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the project (open, in_progress, completed)",
+          "maxLength": 30
+        },
+        "trackCount": {
+          "type": "number",
+          "description": "Number of audio tracks in this project"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last modified timestamp"
+        }
+      },
+      "required": ["projectId", "title", "ownerId", "bpm"]
+    },
+    "Invitation": {
+      "title": "Invitation",
+      "description": "Collaboration invitation or request between musicians",
+      "type": "object",
+      "properties": {
+        "invitationId": {
+          "type": "string",
+          "description": "Unique invitation identifier"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "UID of the musician sending the invite"
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Display name of sender",
+          "maxLength": 80
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "UID of target musician"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Project ID for collaboration",
+          "maxLength": 128
+        },
+        "projectTitle": {
+          "type": "string",
+          "description": "Title of song project",
+          "maxLength": 120
+        },
+        "instrument": {
+          "type": "string",
+          "description": "Instrument requested or offered",
+          "maxLength": 60
+        },
+        "message": {
+          "type": "string",
+          "description": "Custom invitation note",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "description": "pending, accepted, or rejected",
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when invite was sent"
+        }
+      },
+      "required": ["invitationId", "senderId", "receiverId", "status"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Direct communication between musicians",
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "description": "Unique message identifier"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "UID of the message author"
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Display name of message author",
+          "maxLength": 80
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "UID of recipient"
+        },
+        "text": {
+          "type": "string",
+          "description": "Message text content",
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when sent"
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Whether message has been read by recipient"
+        }
+      },
+      "required": ["messageId", "senderId", "receiverId", "text"]
+    },
+    "Track": {
+      "title": "Track",
+      "description": "Individual multitrack audio stem within a music project",
+      "type": "object",
+      "properties": {
+        "trackId": {
+          "type": "string",
+          "description": "Unique audio track identifier"
+        },
+        "projectId": {
+          "type": "string",
+          "description": "Project ID this track belongs to"
+        },
+        "name": {
+          "type": "string",
+          "description": "Track label or stem title",
+          "maxLength": 100
+        },
+        "instrument": {
+          "type": "string",
+          "description": "Instrument type (Guitar, Bass, Drums, Vocals, Keyboard, etc.)",
+          "maxLength": 60
+        },
+        "musicianId": {
+          "type": "string",
+          "description": "UID of musician who recorded or uploaded this track"
+        },
+        "musicianName": {
+          "type": "string",
+          "description": "Display name of contributor",
+          "maxLength": 80
+        },
+        "audioUrl": {
+          "type": "string",
+          "description": "Storage URL or data pointer for audio stem"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Audio stem duration in seconds"
+        },
+        "startOffset": {
+          "type": "number",
+          "description": "Timeline start position in seconds relative to project origin"
+        },
+        "volume": {
+          "type": "number",
+          "description": "Track gain multiplier (0.0 to 1.5)"
+        },
+        "pan": {
+          "type": "number",
+          "description": "Stereo panning value (-1.0 to 1.0)"
+        },
+        "isMuted": {
+          "type": "boolean",
+          "description": "Mute state"
+        },
+        "isSolo": {
+          "type": "boolean",
+          "description": "Solo state"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        }
+      },
+      "required": ["trackId", "projectId", "name", "instrument", "musicianId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Public and personal musician profile directory"
+    },
+    "/follows/{followId}": {
+      "schema": "Follow",
+      "description": "Community follow links between musicians"
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collaborative multitrack song projects"
+    },
+    "/projects/{projectId}/tracks/{trackId}": {
+      "schema": "Track",
+      "description": "Multitrack audio stems in a song project"
+    },
+    "/invitations/{invitationId}": {
+      "schema": "Invitation",
+      "description": "Collaboration invites and requests"
+    },
+    "/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Private direct messages between musicians"
+    }
+  }
+}

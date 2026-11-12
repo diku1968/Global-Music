@@ -1,0 +1,8 @@
+## Custom Signing Key configuration for com.diku1968.globlemusic
+## Copy this file to: android/key.properties
+## Place your keystore file inside android/app/ (e.g. android/app/my-release-key.keystore)
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=YOUR_KEY_ALIAS
+storeFile=app/my-release-key.keystore
